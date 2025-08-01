@@ -1,9 +1,9 @@
 from fastapi import FastAPI,HTTPException,Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from .auth import hash_password,authenticate_user, create_access_token
+from .auth import hash_password,get_current_user, create_access_token
 from datetime import timedelta
 from bson import ObjectId
-from .model import RegisterUser,Token
+from .model import RegisterUser,Token,Movies
 from .database import db, collection
 from dotenv import load_dotenv
 import os
@@ -51,6 +51,36 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     data={"sub": form_data.username, "role": "consumer"},
     expires_delta=access_token_expires
 )
+
+@app.post("/movies/")
+def create_movie( movie_id: int, moviename: str,   moviedesc: str, moviegenre: str,movieyear: int,get_current_user: dict = Depends(get_current_user)):
+    if get_current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can create movies")
+    else:
+        movie_data = {
+            "movie_id": movie_id,
+            "moviename": moviename,
+            "moviedesc": moviedesc,
+            "moviegenre": moviegenre,
+            "movieyear": movieyear,
+            "created_by": get_current_user["username"]
+        }
+        movie_collection.insert_one(movie_data)
+        return movie_data
+
+@app.put("/movies/{movie_id}")
+def update_movies( movie_id: int, moviename: str,   moviedesc: str, moviegenre: str,movieyear: int,get_current_user: dict = Depends(get_current_user)):
+    if get_current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can create movies")
+    else:
+        movie_collection.update_one(update_movies)
+
+@app.delete("/movies/{movie_id}")
+def delete_movies( movie_id: int, get_current_user: dict = Depends(get_current_user)):
+    if get_current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can create movies")
+    else:
+        return {"message": f"Item {movie_id}deleted successfully "}
     return {
         "access_token": access_token,
         "token_type": "bearer"
