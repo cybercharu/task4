@@ -11,4 +11,10 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class Movies(BaseModel):
+    movie_id : int
+    moviename: str
+    moviedesc: str
+    moviegenre: str
+    movieyear: int
     
