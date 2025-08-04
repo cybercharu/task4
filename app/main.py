@@ -3,8 +3,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from .auth import hash_password,get_current_user, create_access_token
 from datetime import timedelta
 from bson import ObjectId
-from .model import RegisterUser,Token,Movies
-from .database import db, collection, movie_collection
+from .model import RegisterUser,Token
+from .database import collection, movie_collection
 from dotenv import load_dotenv
 import os
 
@@ -73,20 +73,51 @@ def create_movie( movie_id: int, moviename: str,   moviedesc: str, moviegenre: s
         return movie_data
 
 @app.put("/movies/{movie_id}")
-def update_movies( movie_id: int, moviename: str,   moviedesc: str, moviegenre: str,movieyear: int,get_current_user: dict = Depends(get_current_user)):
+def update_movies(movie_id: int, moviename: str, moviedesc: str, moviegenre: str, movieyear: int, get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can create movies")
-    else:
-        movie_collection.update_one(update_movies)
+        raise HTTPException(status_code=403, detail="Only admins can update movies")
+
+    result = movie_collection.update_one(
+        {"movie_id": movie_id},
+        {"$set": {
+            "moviename": moviename,
+            "moviedesc": moviedesc,
+            "moviegenre": moviegenre,
+            "movieyear": movieyear,
+            "updated_by": get_current_user["username"]
+        }}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Movie not found or no change")
+
+    return {"message": "Movie updated successfully"}
+
 
 @app.delete("/movies/{movie_id}")
 def delete_movies( movie_id: int, get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Only admins can create movies")
-    else:
-        return {"message": f"Item {movie_id}deleted successfully "}
+    result = movie_collection.delete_one({"movie_id": movie_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Movie not found")
 
-@app.get("/movie/{movie_id}")
-def movie(movie_id: int):
-    return {movie_id}
+    return {"message": f"Movie {movie_id} deleted successfully"}
+
+@app.get("/movies")
+def get_all_movies():
+    movies_cursor = movie_collection.find({}, {"_id": 0})  
+    movies = list(movies_cursor)  
+    return movies
+
+@app.get("/movies/{movie_id}")
+def get_movie(movie_id: int):
+    movie = movie_collection.find_one({"movie_id": movie_id}, {"_id": 0})  
+
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    return movie
+
 

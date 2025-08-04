@@ -12,7 +12,7 @@ class Token(BaseModel):
     token_type: str
 
 class Movies(BaseModel):
-    movie_id : int
+    movie_id : str
     moviename: str
     moviedesc: str
     moviegenre: str
