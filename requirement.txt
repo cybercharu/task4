@@ -1,9 +1,0 @@
-pip install fastapi
-pip install uvicorn
-pip install pymongo
-pip install python-dotenv
-pip install passlib[bcrypt]
-pip install PyJWT
-pip install pydantic[email]
-pip install python-multipart
-pip install python-jose[cryptography]
