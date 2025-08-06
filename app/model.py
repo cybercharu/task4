@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Literal
+from typing import Literal,Optional
 
 class RegisterUser(BaseModel):
     email: EmailStr
@@ -17,3 +17,8 @@ class Movies(BaseModel):
     moviedesc: str
     moviegenre: str
     movieyear: int
+    available: Optional[bool] = True
+
+class Rental(BaseModel):
+    user: str
+    movie_id: int
