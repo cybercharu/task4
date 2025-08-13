@@ -133,6 +133,8 @@ def get_movie(movie_id: int):
 # allow user(consumer) to rent a movie
 @app.post("/movies/{movie_id}/rent")
 def rent_movie(movie_id: int, get_current_user: dict = Depends(get_current_user)):
+    if get_current_user["role"] != "consumer":
+        raise HTTPException(status_code=403, detail="Only consumer can update movies")
     movie = movie_collection.find_one({"movie_id": movie_id})
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
@@ -153,6 +155,8 @@ def rent_movie(movie_id: int, get_current_user: dict = Depends(get_current_user)
 # allow user(consumer) to return a rented movie
 @app.post("/movies/{movie_id}/return")
 def return_movie(movie_id: int, get_current_user: dict = Depends(get_current_user)):
+    if get_current_user["role"] != "consumer":
+        raise HTTPException(status_code=403, detail="Only consumer can update movies")
     movie = movie_collection.find_one({"movie_id": movie_id})
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
@@ -182,6 +186,8 @@ def return_movie(movie_id: int, get_current_user: dict = Depends(get_current_use
 # consumer can view their rentals
 @app.get("/users/me/rentals")
 def get_my_rented_movies(get_current_user: dict = Depends(get_current_user)):
+    if get_current_user["role"] != "consumer":
+        raise HTTPException(status_code=403, detail="Only consumer can update movies")
     username = get_current_user["username"]
     rentals = list(rental_collection.find({
         "rented_by": username,
