@@ -12,10 +12,16 @@ load_dotenv()
 ACCESS_TOKEN_EXPIRE_MINUTES=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 app = FastAPI()
+
+@app.get("/")
+def index():
+    return{"hello world"}
+
 # welcoming user to my API page
 @app.get("/hello/{name}")
 def hello(name):
     return f"welcome to RESTful API for a movie library application,{name}"
+
 # Allow users to register themselves
 @app.post("/register")
 def register_user(data: RegisterUser):
