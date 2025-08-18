@@ -5,12 +5,7 @@ from datetime import timedelta,datetime
 from bson import ObjectId
 from .model import RegisterUser,Token,Movies
 from .database import collection, movie_collection,rental_collection
-from dotenv import load_dotenv
-import os
-
-load_dotenv()  
-ACCESS_TOKEN_EXPIRE_MINUTES=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
-
+from .config import ACCESS_TOKEN_EXPIRE_MINUTES,MONGO_URI 
 app = FastAPI()
 
 @app.get("/")
@@ -52,7 +47,7 @@ def register_user(data: RegisterUser):
 # Allow users to login with their username and password
 @app.post("/token",response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
     data={"username": form_data.username, "role": "role"},
     expires_delta=access_token_expires
@@ -207,6 +202,3 @@ def get_my_rented_movies(get_current_user: dict = Depends(get_current_user)):
         if movie:
             movie_names.append(movie["moviename"])
     return {"your_rented_movies": movie_names}
-
-
-
