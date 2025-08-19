@@ -1,9 +1,10 @@
 from fastapi import FastAPI,HTTPException,Depends
+from typing import List
 from fastapi.security import OAuth2PasswordRequestForm
 from .auth import hash_password,get_current_user, create_access_token
 from datetime import timedelta,datetime
 from bson import ObjectId
-from .model import RegisterUser,Token,Movies
+from .model import RegisterUser,Token,Movies,MovieResponse,RentalResponse,MovieSucess
 from .database import collection, movie_collection,rental_collection
 from .config import ACCESS_TOKEN_EXPIRE_MINUTES,MONGO_URI 
 app = FastAPI()
@@ -58,7 +59,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     }
 
 # allow user (admin) to create movies
-@app.post("/movies/")
+@app.post("/movies/",response_model=MovieSucess)
 def create_movie(moviename: str, moviedesc: str, moviegenre: str, movieyear: int,available:bool,get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Only admins can create movies")
@@ -78,10 +79,10 @@ def create_movie(moviename: str, moviedesc: str, moviegenre: str, movieyear: int
         "created_by": get_current_user["username"]
     }
     result = movie_collection.insert_one(movie)
-    return {"message": "Movie created", "movie_id": new_movie_id, "movie_org_id": str(result.inserted_id)}
+    return {"message": "Movie created"}
 
 # allow user(admin) to update movies
-@app.put("/movies/{movie_id}")
+@app.put("/movies/{movie_id}",response_model=MovieSucess)
 def update_movies(movie_id: int,movie_data: Movies,get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Only admins can update movies")
@@ -103,7 +104,7 @@ def update_movies(movie_id: int,movie_data: Movies,get_current_user: dict = Depe
     return {"message": "Movie updated successfully"}
 
 # allow user(admin) to delete movie
-@app.delete("/movies/{movie_id}")
+@app.delete("/movies/{movie_id}",response_model=MovieSucess)
 def delete_movies( movie_id: int, get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Only admins can create movies")
@@ -115,14 +116,14 @@ def delete_movies( movie_id: int, get_current_user: dict = Depends(get_current_u
     return {"message": f"Movie {movie_id} deleted successfully"}
 
 # allow users to show all the movies
-@app.get("/movies")
+@app.get("/movies",response_model=List[MovieResponse])
 def get_all_movies():
     movies_cursor = movie_collection.find({}, {"_id": 0})  
     movies = list(movies_cursor)  
     return movies
 
 # allow users to show particular movie 
-@app.get("/movies/{movie_id}")
+@app.get("/movies/{movie_id}",response_model=MovieResponse)
 def get_movie(movie_id: int):
     movie = movie_collection.find_one({"movie_id": movie_id}, {"_id": 0})  
 
@@ -132,7 +133,7 @@ def get_movie(movie_id: int):
     return movie
 
 # allow user(consumer) to rent a movie
-@app.post("/movies/{movie_id}/rent")
+@app.post("/movies/{movie_id}/rent",response_model=RentalResponse)
 def rent_movie(movie_id: int, get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "consumer":
         raise HTTPException(status_code=403, detail="Only consumer can update movies")
@@ -154,7 +155,7 @@ def rent_movie(movie_id: int, get_current_user: dict = Depends(get_current_user)
     }
 
 # allow user(consumer) to return a rented movie
-@app.post("/movies/{movie_id}/return")
+@app.post("/movies/{movie_id}/return",response_model=RentalResponse)
 def return_movie(movie_id: int, get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "consumer":
         raise HTTPException(status_code=403, detail="Only consumer can update movies")
@@ -185,7 +186,7 @@ def return_movie(movie_id: int, get_current_user: dict = Depends(get_current_use
     }
 
 # consumer can view their rentals
-@app.get("/users/me/rentals")
+@app.get("/users/me/rentals",response_model=RentalResponse)
 def get_my_rented_movies(get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "consumer":
         raise HTTPException(status_code=403, detail="Only consumer can update movies")

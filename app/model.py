@@ -10,15 +10,23 @@ class RegisterUser(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
 class Movies(BaseModel):
-    movie_id : str
     moviename: str
     moviedesc: str
     moviegenre: str
     movieyear: int
     available: Optional[bool] = True
-
-class Rental(BaseModel):
-    user: str
+   
+class MovieResponse(Movies):
     movie_id: int
+    created_by: Optional[str] = None
+    updated_by: Optional[str] = None
+
+class MovieSucess(BaseModel):
+    message:str
+class RentalResponse(BaseModel):
+    movie_id: int
+    moviename: str
+    rented_by: str
+    rented_on: str
+    return_date: Optional[str] = None
