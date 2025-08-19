@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from .auth import hash_password,get_current_user, create_access_token
 from datetime import timedelta,datetime
 from bson import ObjectId
-from .model import RegisterUser,Token,Movies,MovieResponse,RentalResponse,MovieSucess
+from .model import RegisterUser,Token,Movies,MovieResponse,RentalResponse,MovieSucess,MyRentals
 from .database import collection, movie_collection,rental_collection
 from .config import ACCESS_TOKEN_EXPIRE_MINUTES,MONGO_URI 
 app = FastAPI()
@@ -186,7 +186,7 @@ def return_movie(movie_id: int, get_current_user: dict = Depends(get_current_use
     }
 
 # consumer can view their rentals
-@app.get("/users/me/rentals",response_model=RentalResponse)
+@app.get("/users/me/rentals",response_model=MyRentals)
 def get_my_rented_movies(get_current_user: dict = Depends(get_current_user)):
     if get_current_user["role"] != "consumer":
         raise HTTPException(status_code=403, detail="Only consumer can update movies")

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Literal,Optional
+from typing import Literal,Optional,List
 
 class RegisterUser(BaseModel):
     email: EmailStr
@@ -25,8 +25,7 @@ class MovieResponse(Movies):
 class MovieSucess(BaseModel):
     message:str
 class RentalResponse(BaseModel):
-    movie_id: int
-    moviename: str
-    rented_by: str
-    rented_on: str
-    return_date: Optional[str] = None
+    message:str
+
+class MyRentals(BaseModel):
+    your_rented_movies: List[str] = []
